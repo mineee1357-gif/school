@@ -1,124 +1,55 @@
-import streamlit as st
+import streamlit as pd
+import pandas as pd
+import plotly.express as px
 
+# 1. 페이지 기본 설정
 st.set_page_config(
-    page_title="방배중학교 소개",
-    page_icon="🏫",
+    page_title="국가별 MBTI 분포 현황",
+    page_icon="📊",
     layout="wide"
 )
 
-st.title("🏫 방배중학교 소개")
-st.subheader("서울특별시 서초구의 공립 중학교")
+# 2. 예시 데이터 생성 (실제 데이터가 있다면 이 부분을 변경하시면 됩니다)
+@st.cache_data
+def load_data():
+    data = {
+        'Country': ['South Korea', 'United States', 'Japan', 'Germany', 'United Kingdom', 'Brazil', 'France', 'Australia'],
+        'Most_Common_MBTI': ['INFP', 'INFP', 'INFP', 'INFP', 'ENFP', 'ENFP', 'INFP', 'ENFP'],
+        'Total_Sample': [15000, 45000, 22000, 18000, 25000, 30000, 19000, 14000],
+        'Introvert_Ratio(%)': [62, 49, 68, 54, 47, 41, 56, 48],
+        'Extravert_Ratio(%)': [38, 51, 32, 46, 53, 59, 44, 52]
+    }
+    return pd.DataFrame(data)
 
-st.image(
-    "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=1200",
-    use_container_width=True
-)
+df = load_data()
 
-menu = st.sidebar.radio(
-    "메뉴",
-    ["학교 소개", "학교 정보", "교육 목표", "학교 생활", "오시는 길"]
-)
-
-if menu == "학교 소개":
-    st.header("학교 소개")
-
-    st.write("""
-방배중학교는 서울특별시 서초구에 위치한 공립 중학교입니다.
-
-학생들이 올바른 인성과 창의성을 갖춘 미래 인재로 성장할 수 있도록
-다양한 교육활동과 체험 프로그램을 운영하고 있습니다.
-
-학교는 학업뿐 아니라 스포츠, 예술, 동아리 활동 등
-학생들의 다양한 재능을 키울 수 있는 교육환경을 제공하고 있습니다.
-""")
-
-    st.success("배움과 꿈이 함께하는 행복한 학교")
-
-elif menu == "학교 정보":
-
-    st.header("학교 기본 정보")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.metric("설립", "1980년")
-        st.metric("학교 유형", "공립")
-        st.metric("학교급", "중학교")
-
-    with col2:
-        st.metric("위치", "서울특별시 서초구")
-        st.metric("학생 수", "약 770명")
-        st.metric("교직원", "약 70명")
-
-    st.info("""
-주소 : 서울특별시 서초구 동광로 144
-
-대표전화 : 02-532-1342
-""")
-
-elif menu == "교육 목표":
-
-    st.header("교육 목표")
-
-    st.markdown("""
-### 🎯 목표
-
-- 올바른 인성을 갖춘 학생
-- 스스로 배우는 창의적인 학생
-- 서로 존중하고 배려하는 학생
-- 건강한 신체와 마음을 가진 학생
-- 미래 사회를 준비하는 디지털 인재
-""")
-
-    st.progress(100)
-
-elif menu == "학교 생활":
-
-    st.header("학교 생활")
-
-    tab1, tab2, tab3 = st.tabs(["📚 수업", "🎨 동아리", "⚽ 체육"])
-
-    with tab1:
-        st.write("""
-- 국어
-- 영어
-- 수학
-- 사회
-- 과학
-- 정보
-- 음악
-- 미술
-- 기술가정
-""")
-
-    with tab2:
-        st.write("""
-다양한 자율동아리와 학생 자치 활동을 통해
-학생들이 자신의 적성과 재능을 키울 수 있습니다.
-""")
-
-    with tab3:
-        st.write("""
-체육 활동과 학교 스포츠클럽을 통해
-건강한 학교생활을 지원합니다.
-""")
-
-elif menu == "오시는 길":
-
-    st.header("오시는 길")
-
-    st.write("""
-**주소**
-
-서울특별시 서초구 동광로 144
-""")
-
-    st.markdown("""
-### 학교 홈페이지
-
-http://bangbae.sen.ms.kr
+# 3. 메인 타이틀 및 소개
+st.title("🌍 글로벌 MBTI 분포 대시보드")
+st.markdown("""
+이 사이트는 전 세계 국가들의 MBTI 성격 유형 분포를 시각적으로 확인하기 위해 만들어졌습니다.
+왼쪽 사이드바에서 원하는 국가를 선택하거나, 아래 차트에서 전반적인 트렌드를 확인해 보세요!
 """)
 
 st.divider()
 
-st.caption("© 2026 Bangbae Middle School Introduction Website")
+# 4. 사이드바 - 국가 선택 필터
+st.sidebar.header("🔍 필터 옵션")
+selected_countries = st.sidebar.multiselect(
+    "조회할 국가를 선택하세요:",
+    options=df['Country'].unique(),
+    default=df['Country'].unique()
+)
+
+# 필터링된 데이터
+filtered_df = df[df['Country'].isin(selected_countries)]
+
+# 5. 주요 지표 (Metrics) 표현
+if not filtered_df.empty:
+    st.subheader("📌 요약 통계")
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.metric(label="조회된 국가 수", value=f"{len(filtered_df)} 개국")
+    with col2:
+        # 가장 흔한 MBTI (가장 많이 등장한 유형)
+        top_mbti = filtered_df
